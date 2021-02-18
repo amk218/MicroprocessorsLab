@@ -12,6 +12,7 @@ start:
 	movwf	TRISC, A	    ; Move contents of W to TRISC (Access bank)
 	bra 	test		    ; Jump to test
 loop:
+	call	delay
 	movff 	0x06, PORTC	    ; Copy value from 0x06 to PORTC
 	incf 	0x06, W, A	    ; Add 1 to value in 0x06 and put result into W register
 test:
@@ -21,4 +22,12 @@ test:
 	bra 	loop		    ; Not yet finished goto start of loop again
 	goto 	0x0		    ; Re-run program from start
 
+delay:
+	movlw   0x10
+	movwf   0x20, A
+	decfsz  0x20, F, A
+	bra	$-2
+	return
+	
+	
 	end	main
