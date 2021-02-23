@@ -1,4 +1,5 @@
 	#include <xc.inc>
+; Delayed counter
 
 psect	code, abs
 	
@@ -23,7 +24,7 @@ test:
 	goto 	0x0		    ; Re-run program from start
 
 delay1:
-	movlw   0x10		    ; Put value 0x10 into W
+	movlw   0xFF		    ; Put value 0x10 into W
 	movwf   0x20, A		    ; Move value in W to file register address 0x20
 	decfsz  0x20, F, A	    ; Decrement value in 0x20. If 0, skip next line
 	bra	$-2
@@ -31,11 +32,18 @@ delay1:
 	
 delay2:
 	call	delay1		    ; Call counter delay1
-	movlw	0x20		    ; Put the value 0x20 into W
+	movlw	0xFF		    ; Put the value 0x20 into W
 	movwf	0x30		    ; Move value in W to file register address 0x30
 	decfsz	0x30,F,A	    ; Decrement value in 0x30. If 0, skip next line
 	bra	$-2
 	return
 	
+delay2:
+	call	delay2
+	movlw	0xFF
+	movwf	0x30
+	decfsz	0x30, F, A
+	bra	$-2
+	return
 	
 	end	main
