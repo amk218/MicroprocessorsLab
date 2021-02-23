@@ -64,25 +64,25 @@ delay1:
 	
 delay2:
 	movlw	0xFF		    ; Put the value 0x20 into W
-	movwf	0x20		    ; Move value in W to file register address 0x20
+	movwf	0x30		    ; Move value in W to file register address 0x20
 	call	delay1		    ; Call counter delay1
-	decfsz	0x20,F,A	    ; Decrement value in 0x30. If 0, skip next line
+	decfsz	0x30, F, A	    ; Decrement value in 0x30. If 0, skip next line
 	bra	$-6
 	return
 
 delay3:
 	movlw	0x10
-	movwf	0x20
+	movwf	0x40
 	call	delay2
-	decfsz	0x20,F,A
+	decfsz	0x40,F,A
 	bra	$-6
 	return
 	
 delay4:
 	movlw	0x10
-	movwf	0x20
+	movwf	0x50
 	call	delay3
-	decfsz	0x20, F, A
+	decfsz	0x50, F, A
 	bra	$-6
 	return
 	
