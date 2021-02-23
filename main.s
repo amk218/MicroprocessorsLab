@@ -13,7 +13,7 @@ start:
 	movwf	TRISC, A	    ; Move contents of W to TRISC (Access bank)
 	bra 	test		    ; Jump to test
 loop:
-	call	delay2		    ; Call delay counter
+	call	delay3		    ; Call delay counter
 	movff 	0x06, PORTC	    ; Copy value from 0x06 to PORTC
 	incf 	0x06, W, A	    ; Add 1 to value in 0x06 and put result into W register
 test:
@@ -31,19 +31,19 @@ delay1:
 	return
 	
 delay2:
-	call	delay1		    ; Call counter delay1
 	movlw	0xFF		    ; Put the value 0x20 into W
 	movwf	0x30		    ; Move value in W to file register address 0x30
+	call	delay1		    ; Call counter delay1
 	decfsz	0x30,F,A	    ; Decrement value in 0x30. If 0, skip next line
-	bra	$-2
+	bra	$-6
 	return
 	
-delay2:
+delay3:
+	movlw	0x50
+	movwf	0x40
 	call	delay2
-	movlw	0xFF
-	movwf	0x30
-	decfsz	0x30, F, A
-	bra	$-2
+	decfsz	0x40, F, A
+	bra	$-6
 	return
-	
+
 	end	main
