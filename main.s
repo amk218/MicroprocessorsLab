@@ -13,8 +13,8 @@ setup:
 	bsf	EEPGD		    ; access Flash program memory
 	movlw 	0x0		    ; Put 0 to W register
 	movwf	TRISC, A	    ; Move contents of W to TRISC (to make it an output)
-	movlw b'11111111'	    ; Put binary 11111111 to W register
-	movwf TRISD		    ; Move contents of W to TRISD (to make it an input)
+	movlw	0b11111111	    ; Put binary 11111111 to W register
+	movwf	TRISD		    ; Move contents of W to TRISD (to make it an input)
 	goto	start
 	; ******* My data and where to put it in RAM *
 myTable:
@@ -32,27 +32,28 @@ start:
 	movwf	TBLPTRH, A	    ; load high byte to TBLPTRH
 	movlw	low(myTable)	    ; address of data in PM
 	movwf	TBLPTRL, A	    ; load low byte to TBLPTRL
-	movlw	6		    ; 22 bytes to read
+	movlw	5		    ; 22 bytes to read
 	movwf 	counter, A	    ; our counter register
 loop:
 	nop			    ; This is to switch program on/off with PORTD pin3
-	tfsc	PORTD, 3	    ; If PORTD pin 3 is 0, skip next line
+	btfsc	PORTD, 3	    ; If PORTD pin 3 is 0, skip next line
 	bra	$-3
     
         tblrd*+			    ; move one byte from PM to TABLAT, increment TBLPRT
 	movff	TABLAT, PORTC	    ; move read data from TABLAT to PORTC	
-	decfsz	counter, A	    ; count down to zero
 	
-	tfsc	PORTD, 0	    ; If PORTD pin 0 is 0, skip next line
+	btfsc	PORTD, 0	    ; If PORTD pin 0 is 0, skip next line
 	call	delay2		    ; These will adjust delay length based on PORTD input
 	
-	tfsc	PORTD, 1		    
+	btfsc	PORTD, 1		    
 	call	delay3
 	
-	tfsc	PORTD, 2
+	btfsc	PORTD, 2
 	call	delay4
 	
+	decfsz	counter, A	    ; count down to zero
 	bra	loop		    ; keep going until finished
+	goto	0x00		    ; Re-run program
 	
 delay1:
 	movlw   0xFF		    ; Put value 0x10 into W
@@ -62,30 +63,28 @@ delay1:
 	return
 	
 delay2:
-	call	delay1		    ; Call counter delay1
 	movlw	0xFF		    ; Put the value 0x20 into W
 	movwf	0x20		    ; Move value in W to file register address 0x20
+	call	delay1		    ; Call counter delay1
 	decfsz	0x20,F,A	    ; Decrement value in 0x30. If 0, skip next line
-	bra	$-2
+	bra	$-6
 	return
 
 delay3:
-	call delay2
-	movlw	0xFF
+	movlw	0x10
 	movwf	0x20
+	call	delay2
 	decfsz	0x20,F,A
-	bra	$-2
+	bra	$-6
 	return
 	
 delay4:
-	call delay3
-	movlw	0xFF
+	movlw	0x10
 	movwf	0x20
+	call	delay3
 	decfsz	0x20, F, A
-	bra	$-2
+	bra	$-6
 	return
 	
-	
-	goto	0
 
 	end	main
