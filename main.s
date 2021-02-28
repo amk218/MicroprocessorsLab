@@ -10,15 +10,14 @@ main:
 
 	; ******* Programme Setup Code ******
 setup:	
-	movlw 	0x0		    ; Put 0 to W register
-	movwf	TRISD, A	    ; Move contents of W to TRISD (to make it an output)
-	movlw	0x0		    ; Put 0 to W register
-	movwf	TRISE, A	    ; Move contents of W to TRISE (to make it an output)
+	clrf	TRISD		    ; Clear TRISD to make it an output
+	clrf	PORTD		    ; Clear PORTD to begin with
 	goto	start
 
-	; ******* Control Bus operations test ******
+	; ******* Control Bus operations ******
+	
 start:
-	bsf	PORTD, 0
+	BSF	PORTD, 1
 	
 	goto	0
 	
