@@ -14,67 +14,72 @@ setup:
 	clrf	PORTD, A	    ; Clear PORTD to begin with
 	clrf	TRISE, A	    ; Clear TRISE to make it an output
 	clrf	PORTE, A
-	goto	start
+	clrf	PORTC, A
+	clrf	TRISC, A
+	goto	ControlSeq
 
-	; ******* Writing a byte of data onto the flip flop ******
+	; ******* Writing&Reading external memory flip flops ******
 	
-start:
+ControlSeq: ; Test protocol
+    
+    call Write1b
+    call Read1b
+    call delay3
+    call Write2b
+    call Read2b
+    call delay3
+
+    
+    goto	0
+	 
+	
+Write1b: ; Write data onto external flip flop
 	movlw	0b10101010
+	clrf	TRISE, A
 	movwf	LATE, A
-	BSF	PORTD, 0, A	    ; Set output enable high (not enabled)
+	BSF	PORTD, 0, A	    ; Set output enable high (disabled)
 	call	delay1
 	BSF	PORTD, 1, A	    ; Set clock pulse high
 	call	delay1
 	BCF	PORTD, 1, A	    ; Set clock pulse low
+	call	delay3
+	return
+	
+Read1b:	; Read from external flip flop and show data on PORTF
+	setf	TRISE, A	    ; Set TRISE to switch E to be an input
 	BCF	PORTD, 0, A	    ; Set output enable low (enabled)
 	call	delay1
 	BSF	PORTD, 1, A	    ; Set clock pulse high
+	call	delay1
+	movff	PORTE, PORTC	    ; Display output on PORTF
+	BCF	PORTD, 1, A
+	BSF	PORTD, 0, A	    ; Set output enable high (Disabled)
+
+	return
 	
-	call	delay3
-	
-	movlw	0b11111111
+
+Write2b: ; Write data onto external flip flop
+	movlw	0b10011001
+	clrf	TRISE, A
 	movwf	LATE, A
-	BSF	PORTD, 0, A	    ; Set output enable high (not enabled)
+	BSF	PORTD, 6, A	    ; Set output enable high (disabled)
 	call	delay1
-	BSF	PORTD, 1, A	    ; Set clock pulse high
+	BSF	PORTD, 7, A	    ; Set clock pulse high
 	call	delay1
-	BCF	PORTD, 1, A	    ; Set clock pulse low
-	BCF	PORTD, 0, A	    ; Set output enable low (enabled)
-	call	delay1
-	BSF	PORTD, 1, A	    ; Set clock pulse high
-	
+	BCF	PORTD, 7, A	    ; Set clock pulse low
 	call	delay3
+	return
 	
-	movlw	0b11110000
-	movwf	LATE, A
-	BSF	PORTD, 0, A	    ; Set output enable high (not enabled)
+Read2b:	; Read from external flip flop and show data on PORTF
+	setf	TRISE, A		    ; Set TRISE to switch E to be an input
+	BCF	PORTD, 6, A	    ; Set output enable low (enabled)
 	call	delay1
-	BSF	PORTD, 1, A	    ; Set clock pulse high
+	BSF	PORTD, 7, A	    ; Set clock pulse high
 	call	delay1
-	BCF	PORTD, 1, A	    ; Set clock pulse low
-	BCF	PORTD, 0, A	    ; Set output enable low (enabled)
-	call	delay1
-	BSF	PORTD, 1, A	    ; Set clock pulse high
-	
-	call	delay3
-	
-	movlw	0b00001111
-	movwf	LATE, A
-	BSF	PORTD, 0, A	    ; Set output enable high (not enabled)
-	call	delay1
-	BSF	PORTD, 1, A	    ; Set clock pulse high
-	call	delay1
-	BCF	PORTD, 1, A	    ; Set clock pulse low
-	BCF	PORTD, 0, A	    ; Set output enable low (enabled)
-	call	delay1
-	BSF	PORTD, 1, A	    ; Set clock pulse high
-	
-	call	delay3
-	
-	
-	
-	goto	0
-	
+	movff	PORTE, PORTC	    ; Display output on PORTF
+	BCF	PORTD, 7, A
+	BSF	PORTD, 6, A	    ; Set output enable high (Disabled)
+	return
 
 
 delay1:
@@ -100,7 +105,7 @@ delay3:
 	bra	$-6
 	return
 	
-	end	main
+
 
 	
 
