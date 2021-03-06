@@ -52,6 +52,11 @@ loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	addlw	0xff		; don't send the final carriage return to LCD
 	lfsr	2, myArray
 	call	LCD_Write_Message
+	
+	
+	
+	
+	call	LCD_clear_screen
 
 	goto	$		; goto current line in code
 
