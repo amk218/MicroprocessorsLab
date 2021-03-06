@@ -1,6 +1,6 @@
 #include <xc.inc>
 
-global  LCD_Setup, LCD_Write_Message
+global  LCD_Setup, LCD_Write_Message, LCD_clear_screen, LCD_Write_Message_line2
 
 psect	udata_acs   ; named variables in access ram
 LCD_cnt_l:	ds 1   ; reserve 1 byte for variable LCD_cnt_l
@@ -54,6 +54,19 @@ LCD_Loop_message:
 	decfsz  LCD_counter, A
 	bra	LCD_Loop_message
 	return
+	
+LCD_Write_Message_line2:	    ; Message stored at FSR2, length stored in W
+	movwf   LCD_counter, A
+	movlw	11000000B
+	call	LCD_Send_Byte_I
+	movlw	10
+	call	LCD_delay_x4us
+LCD_Loop_message_line2:
+	movf    POSTINC2, W, A
+	call    LCD_Send_Byte_D
+	decfsz  LCD_counter, A
+	bra	LCD_Loop_message_line2
+	return
 
 LCD_Send_Byte_I:	    ; Transmits byte stored in W to instruction reg
 	movwf   LCD_tmp, A
@@ -84,6 +97,14 @@ LCD_Send_Byte_D:	    ; Transmits byte stored in W to data reg
 	movlw	10	    ; delay 40us
 	call	LCD_delay_x4us
 	return
+	
+	
+LCD_clear_screen:
+    movlw   0b00000001
+    call    LCD_Send_Byte_I
+    movlw   2
+    call    LCD_delay_ms
+    return
 
 LCD_Enable:	    ; pulse enable bit LCD_E for 500ns
 	nop
