@@ -1,7 +1,7 @@
 #include <xc.inc>
 
 extrn	UART_Setup, UART_Transmit_Message  ; external subroutines
-extrn	LCD_Setup, LCD_Write_Message
+extrn	LCD_Setup, LCD_Write_Message, LCD_clear_screen, LCD_Write_Message_line2
 	
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds 1    ; reserve one byte for a counter variable
@@ -13,9 +13,9 @@ myArray:    ds 0x80 ; reserve 128 bytes for message data
 psect	data    
 	; ******* myTable, data in programme memory, and its length *****
 myTable:
-	db	'H','e','l','l','o',' ','W','o','r','l','d','!',0x0a
+	db	'H','e','l','l','o',' ','W','o','r','l','d',',',' ','y','o','u',' ','s','u','c','k','!', 0x0a
 					; message, plus carriage return
-	myTable_l   EQU	13	; length of data
+	myTable_l   EQU	23	; length of data
 	align	2
     
 psect	code, abs	
@@ -51,18 +51,42 @@ loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	movlw	myTable_l	; output message to LCD
 	addlw	0xff		; don't send the final carriage return to LCD
 	lfsr	2, myArray
-	call	LCD_Write_Message
 	
 	
 	
-	
+	call	LCD_Write_Message_line2
 	call	LCD_clear_screen
+	
+	
 
 	goto	$		; goto current line in code
 
 	; a delay subroutine if you need one, times around loop in delay_count
 delay:	decfsz	delay_count, A	; decrement until zero
 	bra	delay
+	return
+	
+delay1:
+	movlw   0xFF		    ; Put value 0x10 into W
+	movwf   0x20, A		    ; Move value in W to file register address 0x20
+	decfsz  0x20, F, A	    ; Decrement value in 0x20. If 0, skip next line
+	bra	$-2
+	return
+	
+delay2:
+	movlw	0xFF		    ; Put the value 0x20 into W
+	movwf	0x30, A		    ; Move value in W to file register address 0x30
+	call	delay1		    ; Call counter delay1
+	decfsz	0x30,F,A	    ; Decrement value in 0x30. If 0, skip next line
+	bra	$-6
+	return
+	
+delay3:
+	movlw	0x50
+	movwf	0x40, A
+	call	delay2
+	decfsz	0x40, F, A
+	bra	$-6
 	return
 
 	end	rst
