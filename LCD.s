@@ -57,7 +57,7 @@ LCD_Loop_message:
 	
 LCD_Write_Message_line2:	    ; Message stored at FSR2, length stored in W
 	movwf   LCD_counter, A
-	movlw	11000000B
+	movlw	11000000B	    ; requires a change in data memory RAM to switch to line 2
 	call	LCD_Send_Byte_I
 	movlw	10
 	call	LCD_delay_x4us

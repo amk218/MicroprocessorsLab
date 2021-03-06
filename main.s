@@ -27,6 +27,8 @@ setup:	bcf	CFGS	; point to Flash program memory
 	bsf	EEPGD 	; access Flash program memory
 	call	UART_Setup	; setup UART
 	call	LCD_Setup	; setup UART
+	movlw	0b11111111
+	movwf	TRISD, A
 	goto	start
 	
 	; ******* Main programme ****************************************
@@ -48,18 +50,39 @@ loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	lfsr	2, myArray
 	call	UART_Transmit_Message
 
+
+
+	
+test:					    ; decides using RD0 which line of LCD to write to
+	btfss	PORTD, 0, A		    ; If PORTD pin 0 is 1, skip next line
+	call	Write_line1
+	btfsc	PORTD, 0, A		    ; If PORTD pin 0 is 0, skip next line
+	call	Write_line2
+	call	delay3
+
+	bra	test
+	goto	$		    ; goto current line in code
+	
+
+Write_line1:			   ; Writes to line 1 of LCD
+	call	LCD_clear_screen
 	movlw	myTable_l	; output message to LCD
 	addlw	0xff		; don't send the final carriage return to LCD
 	lfsr	2, myArray
-	
-	
-	
-	call	LCD_Write_Message_line2
+	call	LCD_Write_Message
+	return
+Write_line2:			    ; Writes to line 2 of LCD
 	call	LCD_clear_screen
+	movlw	myTable_l	; output message to LCD
+	addlw	0xff		; don't send the final carriage return to LCD
+	lfsr	2, myArray
+	call	LCD_Write_Message_line2
+	return
+
 	
 	
 
-	goto	$		; goto current line in code
+
 
 	; a delay subroutine if you need one, times around loop in delay_count
 delay:	decfsz	delay_count, A	; decrement until zero
