@@ -2,6 +2,7 @@
 
 extrn	UART_Setup, UART_Transmit_Message  ; external subroutines
 extrn	LCD_Setup, LCD_Write_Message, LCD_clear_screen, LCD_Write_Message_line2
+extrn	Keypad_Setup, test_buttons
 	
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds 1    ; reserve one byte for a counter variable
@@ -19,7 +20,7 @@ myTable:
 	align	2
     
 psect	code, abs	
-rst: 	org 0x0
+rst: 	org	0x0
  	goto	setup
 
 	; ******* Programme FLASH read Setup Code ***********************
@@ -32,7 +33,8 @@ setup:	bcf	CFGS	; point to Flash program memory
 	goto	start
 	
 	; ******* Main programme ****************************************
-start: 	lfsr	0, myArray	; Load FSR0 with address in RAM	
+start: 	call	test_buttons
+	lfsr	0, myArray	; Load FSR0 with address in RAM
 	movlw	low highword(myTable)	; address of data in PM
 	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
 	movlw	high(myTable)	; address of data in PM
@@ -49,8 +51,6 @@ loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	movlw	myTable_l	; output message to UART
 	lfsr	2, myArray
 	call	UART_Transmit_Message
-
-
 
 	
 test:					    ; decides using RD0 which line of LCD to write to

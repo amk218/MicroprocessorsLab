@@ -1,6 +1,6 @@
 #include <xc.inc>
 
-global  LCD_Setup, LCD_Write_Message, LCD_clear_screen, LCD_Write_Message_line2
+global  LCD_Setup, LCD_Write_Message, LCD_clear_screen, LCD_Write_Message_line2, LCD_delay_x4us
 
 psect	udata_acs   ; named variables in access ram
 LCD_cnt_l:	ds 1   ; reserve 1 byte for variable LCD_cnt_l
@@ -100,11 +100,11 @@ LCD_Send_Byte_D:	    ; Transmits byte stored in W to data reg
 	
 	
 LCD_clear_screen:
-    movlw   0b00000001
-    call    LCD_Send_Byte_I
-    movlw   2
-    call    LCD_delay_ms
-    return
+	movlw	0b00000001
+	call	LCD_Send_Byte_I
+	movlw	2
+	call	LCD_delay_ms
+	return
 
 LCD_Enable:	    ; pulse enable bit LCD_E for 500ns
 	nop
