@@ -1,88 +1,39 @@
 #include <xc.inc>
 
+global	delay2
 extrn	UART_Setup, UART_Transmit_Message  ; external subroutines
 extrn	LCD_Setup, LCD_Write_Message, LCD_clear_screen, LCD_Write_Message_line2
-extrn	Keypad_Setup, test_buttons
+extrn	Keypad_Setup, LCD_Send_Byte_D, Button_Input
 	
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds 1    ; reserve one byte for a counter variable
 delay_count:ds 1    ; reserve one byte for counter in the delay routine
-    
-psect	udata_bank4 ; reserve data anywhere in RAM (here at 0x400)
-myArray:    ds 0x80 ; reserve 128 bytes for message data
 
-psect	data    
-	; ******* myTable, data in programme memory, and its length *****
-myTable:
-	db	'H','e','l','l','o',' ','W','o','r','l','d',',',' ','y','o','u',' ','s','u','c','k','!', 0x0a
-					; message, plus carriage return
-	myTable_l   EQU	23	; length of data
-	align	2
-    
+
 psect	code, abs	
 rst: 	org	0x0
  	goto	setup
 
 	; ******* Programme FLASH read Setup Code ***********************
-setup:	bcf	CFGS	; point to Flash program memory  
-	bsf	EEPGD 	; access Flash program memory
+setup:	bcf	CFGS		; point to Flash program memory  
+	bsf	EEPGD		; access Flash program memory
 	call	UART_Setup	; setup UART
 	call	LCD_Setup	; setup UART
-	movlw	0b11111111
-	movwf	TRISD, A
+	call	Keypad_Setup	; setup Keypad
 	goto	start
 	
 	; ******* Main programme ****************************************
-start: 	call	test_buttons
-	lfsr	0, myArray	; Load FSR0 with address in RAM
-	movlw	low highword(myTable)	; address of data in PM
-	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
-	movlw	high(myTable)	; address of data in PM
-	movwf	TBLPTRH, A		; load high byte to TBLPTRH
-	movlw	low(myTable)	; address of data in PM
-	movwf	TBLPTRL, A		; load low byte to TBLPTRL
-	movlw	myTable_l	; bytes to read
-	movwf 	counter, A		; our counter register
-loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
-	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
-	decfsz	counter, A		; count down to zero
-	bra	loop		; keep going until finished
-		
-	movlw	myTable_l	; output message to UART
-	lfsr	2, myArray
-	call	UART_Transmit_Message
+start: 
+	call	Button_Input
+	; We now have the hex code of the character in W register
+	call	LCD_Send_Byte_D	 ; Display ascii characted on LCD
+	call	delay3		 ; Longer delay to avoid typing character many times
 
-	
-test:					    ; decides using RD0 which line of LCD to write to
-	btfss	PORTD, 0, A		    ; If PORTD pin 0 is 1, skip next line
-	call	Write_line1
-	btfsc	PORTD, 0, A		    ; If PORTD pin 0 is 0, skip next line
-	call	Write_line2
-	call	delay3
-
-	bra	test
+	bra	start
 	goto	$		    ; goto current line in code
-	
-
-Write_line1:			   ; Writes to line 1 of LCD
-	call	LCD_clear_screen
-	movlw	myTable_l	; output message to LCD
-	addlw	0xff		; don't send the final carriage return to LCD
-	lfsr	2, myArray
-	call	LCD_Write_Message
-	return
-Write_line2:			    ; Writes to line 2 of LCD
-	call	LCD_clear_screen
-	movlw	myTable_l	; output message to LCD
-	addlw	0xff		; don't send the final carriage return to LCD
-	lfsr	2, myArray
-	call	LCD_Write_Message_line2
-	return
-
-	
-	
 
 
+	; ***** Delay subroutines *****
 
 	; a delay subroutine if you need one, times around loop in delay_count
 delay:	decfsz	delay_count, A	; decrement until zero
@@ -105,7 +56,7 @@ delay2:
 	return
 	
 delay3:
-	movlw	0x50
+	movlw	0x10
 	movwf	0x40, A
 	call	delay2
 	decfsz	0x40, F, A
